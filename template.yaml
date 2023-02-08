@@ -1,0 +1,228 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  osf-sam
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  OsfUsersApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: osfUsersApi
+      Description: OsfUsersApi
+      StageName: v1
+  OsfGoalsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: osfGoalsApi
+      Description: OsfGoalsApi
+      StageName: v1
+  # This is a Lambda function config associated with the source code: get-all-items.js
+  createGoal:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Handler: lambdas/createUser/index.handler
+      Handler: index.handler
+      CodeUri: lambdas/createGoal
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /goals
+            Method: POST
+            RestApiId:
+              Ref: OsfGoalsApi
+  createUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Handler: lambdas/createUser/index.handler
+      Handler: index.handler
+      CodeUri: lambdas/createUser
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+            RestApiId:
+              Ref: OsfUsersApi
+  getPublic:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Handler: lambdas/createUser/index.handler
+      Handler: index.handler
+      CodeUri: lambdas/getPublic
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Events:
+        Goals:
+          Type: Api
+          Properties:
+            Path: /goals
+            Method: GET
+            RestApiId:
+              Ref: OsfGoalsApi
+        Goal:
+          Type: Api
+          Properties:
+            Path: /goals/{_id}
+            Method: GET
+            RestApiId:
+              Ref: OsfGoalsApi
+        Users:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: GET
+            RestApiId:
+              Ref: OsfUsersApi
+        User:
+          Type: Api
+          Properties:
+            Path: /users/{_id}
+            Method: GET
+            RestApiId:
+              Ref: OsfUsersApi
+  # getUsers:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     # Handler: lambdas/createUser/index.handler
+  #     Handler: index.handler
+  #     CodeUri: lambdas/getUsers
+  #     Runtime: nodejs16.x
+  #     Architectures:
+  #       - x86_64
+  #     MemorySize: 128
+  #     Timeout: 100
+  #     Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+  #     Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+  #     Events:
+  #       Users:
+  #         Type: Api
+  #         Properties:
+  #           Path: /users
+  #           Method: GET
+  #           RestApiId:
+  #             Ref: OsfUsersApi
+  #       User:
+  #         Type: Api
+  #         Properties:
+  #           Path: /users/{_id}
+  #           Method: GET
+  #           RestApiId:
+  #             Ref: OsfUsersApi
+  addFriend:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Handler: lambdas/createUser/index.handler
+      Handler: index.handler
+      CodeUri: lambdas/addFriend
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Events:
+        AddFriends:
+          Type: Api
+          Properties:
+            Path: /users/{_id}/friends
+            Method: POST
+            RestApiId:
+              Ref: OsfUsersApi
+  addEntrance:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Handler: lambdas/createUser/index.handler
+      Handler: index.handler
+      CodeUri: lambdas/addEntrance
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Events:
+        AddFriends:
+          Type: Api
+          Properties:
+            Path: /goals/{_id}
+            Method: POST
+            RestApiId:
+              Ref: OsfGoalsApi
+  removeFriend:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Handler: lambdas/createUser/index.handler
+      Handler: index.handler
+      CodeUri: lambdas/removeFriend
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Events:
+        AddFriends:
+          Type: Api
+          Properties:
+            Path: /users/{_id}/friends
+            Method: PUT
+            RestApiId:
+              Ref: OsfUsersApi
+  # DynamoDB table to store item: {id: &lt;ID&gt;, name: &lt;NAME&gt;}
+  osfUsersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: osf_users
+      PrimaryKey:
+        Name: _id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+  osfGoalsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: osf_goals
+      PrimaryKey:
+        Name: _id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
