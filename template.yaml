@@ -15,8 +15,7 @@ Transform:
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
-  # Each Lambda function is defined by properties:
-  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  #APIS
   OsfUsersApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -29,14 +28,51 @@ Resources:
       Name: osfGoalsApi
       Description: OsfGoalsApi
       StageName: v1
-  # This is a Lambda function config associated with the source code: get-all-items.js
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+  #COGNITO
+  OsfCognitoUserPool2:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: OsfCUP
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      UsernameAttributes:
+        - email
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: false
+  UserPoolDomain: 
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+      UserPoolId: !Ref OsfCognitoUserPool2 
+      Domain: "osf"
+  OsfCognitoUserPoolClient2:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref OsfCognitoUserPool2
+      ClientName: OsfCUPC
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+  # OsfCognitoUI: 
+  #   Type: AWS::Cognito::UserPoolUICustomizationAttachment 
+  #   Properties: 
+  #     UserPoolId: !Ref OsfCognitoUserPool2
+  #     ClientId: !Ref OsfCognitoUserPoolClient2
+  
+  #LAMBDAS
   createGoal:
     Type: AWS::Serverless::Function
     Properties:
-      # Handler: lambdas/createUser/index.handler
       Handler: index.handler
       CodeUri: lambdas/createGoal
-      Runtime: nodejs16.x
+      Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -51,34 +87,52 @@ Resources:
             Method: POST
             RestApiId:
               Ref: OsfGoalsApi
-  createUser:
+  signUp:
     Type: AWS::Serverless::Function
     Properties:
-      # Handler: lambdas/createUser/index.handler
       Handler: index.handler
-      CodeUri: lambdas/createUser
-      Runtime: nodejs16.x
+      CodeUri: lambdas/signUp
+      Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Role: arn:aws:iam::109539191011:role/cognitoSignUp
       Events:
         Api:
           Type: Api
           Properties:
-            Path: /users
+            Path: /users/signup
+            Method: POST
+            RestApiId:
+              Ref: OsfUsersApi
+  logIn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: lambdas/logIn
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Role: arn:aws:iam::109539191011:role/cognitoSignUp
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users/login
             Method: POST
             RestApiId:
               Ref: OsfUsersApi
   getPublic:
     Type: AWS::Serverless::Function
     Properties:
-      # Handler: lambdas/createUser/index.handler
       Handler: index.handler
       CodeUri: lambdas/getPublic
-      Runtime: nodejs16.x
+      Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -114,41 +168,12 @@ Resources:
             Method: GET
             RestApiId:
               Ref: OsfUsersApi
-  # getUsers:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     # Handler: lambdas/createUser/index.handler
-  #     Handler: index.handler
-  #     CodeUri: lambdas/getUsers
-  #     Runtime: nodejs16.x
-  #     Architectures:
-  #       - x86_64
-  #     MemorySize: 128
-  #     Timeout: 100
-  #     Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-  #     Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
-  #     Events:
-  #       Users:
-  #         Type: Api
-  #         Properties:
-  #           Path: /users
-  #           Method: GET
-  #           RestApiId:
-  #             Ref: OsfUsersApi
-  #       User:
-  #         Type: Api
-  #         Properties:
-  #           Path: /users/{_id}
-  #           Method: GET
-  #           RestApiId:
-  #             Ref: OsfUsersApi
   addFriend:
     Type: AWS::Serverless::Function
     Properties:
-      # Handler: lambdas/createUser/index.handler
       Handler: index.handler
       CodeUri: lambdas/addFriend
-      Runtime: nodejs16.x
+      Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -166,10 +191,9 @@ Resources:
   addEntrance:
     Type: AWS::Serverless::Function
     Properties:
-      # Handler: lambdas/createUser/index.handler
       Handler: index.handler
       CodeUri: lambdas/addEntrance
-      Runtime: nodejs16.x
+      Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -187,10 +211,9 @@ Resources:
   removeFriend:
     Type: AWS::Serverless::Function
     Properties:
-      # Handler: lambdas/createUser/index.handler
       Handler: index.handler
       CodeUri: lambdas/removeFriend
-      Runtime: nodejs16.x
+      Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -205,7 +228,7 @@ Resources:
             Method: PUT
             RestApiId:
               Ref: OsfUsersApi
-  # DynamoDB table to store item: {id: &lt;ID&gt;, name: &lt;NAME&gt;}
+  #DYNAMO
   osfUsersTable:
     Type: AWS::Serverless::SimpleTable
     Properties:

@@ -22,10 +22,10 @@
     },
     "scripts": {
         "test": "jest",
-        "build": "webpack-cli --watch",
+        "build": "webpack-cli",
         "buildw": "webpack-cli --watch",
         "deployg": "sam deploy --guided",
         "deploy": "sam deploy",
-        "serve": "sam local start-api -t template.yaml"
+        "serve": "sam local start-api"
     }
 }

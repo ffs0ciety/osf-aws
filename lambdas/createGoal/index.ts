@@ -15,7 +15,7 @@ export const handler = async (event: APIGatewayEvent) => {
   return db.put('goals', obj).then( (result) => {
     return new Response(200,'createGoal', result)
   }).catch((error : Error) => {
-    return new Response(error.statusCode,'createGoal', error)
+    return new Response(400, 'createGoal', error)
   });
 
 }
