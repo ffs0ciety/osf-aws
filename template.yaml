@@ -110,7 +110,7 @@ Resources:
       Description: OsfUsersApi
       StageName: v1
       Auth:
-          AddDefaultAuthorizerToCorsPreflight: false
+          AddDefaultAuthorizerToCorsPreflight: true
           Authorizers:
               OsfCognitoAuthorizer:
                 UserPoolArn: !GetAtt OsfCognitoUserPool.Arn
@@ -228,8 +228,6 @@ Resources:
             Method: GET
             RestApiId:
               Ref: OsfUsersApi
-            # Auth:
-            #     Authorizer: OsfCognitoAuthorizer
         User:
           Type: Api
           Properties:
