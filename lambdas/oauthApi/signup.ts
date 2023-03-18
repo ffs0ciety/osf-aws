@@ -2,9 +2,9 @@ import { APIGatewayEvent } from 'aws-lambda';
 import { CognitoIdentityServiceProvider } from 'aws-sdk';
 import _ from 'lodash';
 import { Response } from '../../plugins/Responses/Response';
-import login from '../../utils/auth/login'
-import signup from '../../utils/auth/signup'
-import newPassword from '../../utils/auth/newPassword'
+import login from '../../utils/oauth/login'
+import signup from '../../utils/oauth/signup'
+import newPassword from '../../utils/oauth/newPassword'
 
 // import { CognitoIdentityProviderClient, SignUpCommand } from "@aws-sdk/client-cognito-identity-provider"; // ES Modules import
 
@@ -13,8 +13,6 @@ export const handler = async (event: APIGatewayEvent) => {
     var cognito = new CognitoIdentityServiceProvider();
 
     const {email,password} = JSON.parse(_.get(event, 'body'))
-    var clientId = '3pj8l2jcgsdod5mm4tqce1g3u7';
-    var userPoolId = 'eu-west-1_q0MX0V3eD';
     
     try {
         await signup(email, password)

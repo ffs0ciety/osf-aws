@@ -15,29 +15,64 @@ Transform:
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
-  #APIS
-  OsfUsersApi:
-    Type: AWS::Serverless::Api
+#IAM
+  OsfPublicDBRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: Public access to DynamoDBS
+      Path: /
+      Policies: 
+        - PolicyName: root
+          PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action: '*'
+                  Resource: '*'
+  OsfPublicDBRoleProfile:
+    Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      Name: osfUsersApi
-      Description: OsfUsersApi
-      StageName: v1
-  OsfGoalsApi:
-    Type: AWS::Serverless::Api
+      Path: /
+      Roles:
+        - !Ref OsfPublicDBRole
+  OsfCognitoSignUpRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: Public access to DynamoDBS
+      Path: /
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+     
+  OsfCognitoSignUpProfile:
+    Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      Name: osfGoalsApi
-      Description: OsfGoalsApi
-      StageName: v1
-      Cors:
-        AllowMethods: "'*'"
-        AllowHeaders: "'*'"
-        AllowOrigin: "'*'"
-        MaxAge: "'600'"
-  #COGNITO
-  OsfCognitoUserPool2:
+      Path: /
+      Roles:
+        - !Ref OsfCognitoSignUpRole
+
+#COGNITO
+  OsfCognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: OsfCUP
+      UserPoolName: OsfCognitoUserPool
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -50,22 +85,46 @@ Resources:
   UserPoolDomain: 
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
-      UserPoolId: !Ref OsfCognitoUserPool2 
+      UserPoolId: !Ref OsfCognitoUserPool 
       Domain: "osf"
-  OsfCognitoUserPoolClient2:
+  OsfCognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      UserPoolId: !Ref OsfCognitoUserPool2
-      ClientName: OsfCUPC
+      UserPoolId: !Ref OsfCognitoUserPool
+      ClientName: OsfCognitoUserPoolClient
       GenerateSecret: false
       ExplicitAuthFlows:
         - ADMIN_NO_SRP_AUTH
-  # OsfCognitoUI: 
-  #   Type: AWS::Cognito::UserPoolUICustomizationAttachment 
-  #   Properties: 
-  #     UserPoolId: !Ref OsfCognitoUserPool2
-  #     ClientId: !Ref OsfCognitoUserPoolClient2
-  
+
+  #APIS
+  OsfOauthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: osfOauthApi
+      Description: OsfOauthApi
+      StageName: v1
+  OsfUsersApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: osfUsersApi
+      Description: OsfUsersApi
+      StageName: v1
+      Auth:
+          AddDefaultAuthorizerToCorsPreflight: false
+          Authorizers:
+              OsfCognitoAuthorizer:
+                UserPoolArn: !GetAtt OsfCognitoUserPool.Arn
+  OsfGoalsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: osfGoalsApi
+      Description: OsfGoalsApi
+      StageName: v1
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
   #LAMBDAS
   createGoal:
     Type: AWS::Serverless::Function
@@ -78,7 +137,7 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Role: !GetAtt OsfPublicDBRole.Arn
       Events:
         Api:
           Type: Api
@@ -90,43 +149,51 @@ Resources:
   signUp:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
-      CodeUri: lambdas/signUp
+      Handler: signup.handler
+      CodeUri: lambdas/oauthApi
       Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/cognitoSignUp
+      Role: !GetAtt OsfCognitoSignUpRole.Arn
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref OsfCognitoUserPool
+          CLIENT_ID: !Ref OsfCognitoUserPoolClient
       Events:
         Api:
           Type: Api
           Properties:
-            Path: /users/signup
+            Path: /oauth/signup
             Method: POST
             RestApiId:
-              Ref: OsfUsersApi
+              Ref: OsfOauthApi
   logIn:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
-      CodeUri: lambdas/logIn
+      Handler: login.handler
+      CodeUri: lambdas/oauthApi
       Runtime: nodejs18.x
       Architectures:
         - x86_64
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/cognitoSignUp
+      Role: !GetAtt OsfCognitoSignUpRole.Arn
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref OsfCognitoUserPool
+          CLIENT_ID: !Ref OsfCognitoUserPoolClient
       Events:
         Api:
           Type: Api
           Properties:
-            Path: /users/login
+            Path: /oauth/login
             Method: POST
             RestApiId:
-              Ref: OsfUsersApi
+              Ref: OsfOauthApi
   getPublic:
     Type: AWS::Serverless::Function
     Properties:
@@ -138,7 +205,7 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Role: !GetAtt OsfPublicDBRole.Arn
       Events:
         Goals:
           Type: Api
@@ -161,6 +228,8 @@ Resources:
             Method: GET
             RestApiId:
               Ref: OsfUsersApi
+            # Auth:
+            #     Authorizer: OsfCognitoAuthorizer
         User:
           Type: Api
           Properties:
@@ -179,7 +248,7 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Role: !GetAtt OsfPublicDBRole.Arn
       Events:
         AddFriends:
           Type: Api
@@ -199,7 +268,7 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Role: !GetAtt OsfPublicDBRole.Arn
       Events:
         AddFriends:
           Type: Api
@@ -219,7 +288,7 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
-      Role: arn:aws:iam::109539191011:role/service-role/publicDBUser
+      Role: !GetAtt OsfPublicDBRole.Arn
       Events:
         AddFriends:
           Type: Api

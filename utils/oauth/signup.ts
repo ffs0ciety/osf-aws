@@ -1,7 +1,7 @@
 import { CognitoIdentityServiceProvider } from 'aws-sdk';
 
 export default async function signUp(email: string, password: string) {
-    var userPoolId = 'eu-west-1_q0MX0V3eD';
+    var userPoolId = process.env.USER_POOL_ID;
     var cognito = new CognitoIdentityServiceProvider();
 
     return await cognito.adminCreateUser(

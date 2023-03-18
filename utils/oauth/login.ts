@@ -1,8 +1,9 @@
 import { CognitoIdentityServiceProvider } from 'aws-sdk';
 
 export default async function logIn( email: string, password: string){
-    var clientId = '3pj8l2jcgsdod5mm4tqce1g3u7';
-    var userPoolId = 'eu-west-1_q0MX0V3eD';
+    console.log('etestssssssss........',process.env.USER_POOL_ID)
+    var userPoolId = process.env.USER_POOL_ID;
+    var clientId = process.env.CLIENT_ID;
 
     var cognito = new CognitoIdentityServiceProvider();
     

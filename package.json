@@ -5,6 +5,7 @@
     "private": true,
     "dependencies": {
         "aws-sdk": "^2.1310.0",
+        "dotenv": "^16.0.3",
         "lodash": "^4.17.21",
         "nanoid": "^4.0.0"
     },
@@ -26,6 +27,6 @@
         "buildw": "webpack-cli --watch",
         "deployg": "sam deploy --guided",
         "deploy": "sam deploy",
-        "serve": "sam local start-api"
+        "serve": "sam local start-api -n env.json"
     }
 }
