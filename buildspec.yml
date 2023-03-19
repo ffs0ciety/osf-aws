@@ -1,8 +1,13 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - echo Installing dependencies...
+      - npm install webpack-cli
   build:
     commands:
+      - echo Building project...
       - webpack-cli
       - sam deploy
 
