@@ -131,7 +131,7 @@ Resources:
     Properties:
       Handler: index.handler
       CodeUri: lambdas/createGoal
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -151,7 +151,7 @@ Resources:
     Properties:
       Handler: signup.handler
       CodeUri: lambdas/oauthApi
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -175,7 +175,7 @@ Resources:
     Properties:
       Handler: login.handler
       CodeUri: lambdas/oauthApi
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -199,7 +199,7 @@ Resources:
     Properties:
       Handler: index.handler
       CodeUri: lambdas/getPublic
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -240,7 +240,7 @@ Resources:
     Properties:
       Handler: index.handler
       CodeUri: lambdas/addFriend
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -260,7 +260,7 @@ Resources:
     Properties:
       Handler: index.handler
       CodeUri: lambdas/addEntrance
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
@@ -280,7 +280,7 @@ Resources:
     Properties:
       Handler: index.handler
       CodeUri: lambdas/removeFriend
-      Runtime: nodejs18.x
+      Runtime: nodejs16.x
       Architectures:
         - x86_64
       MemorySize: 128
