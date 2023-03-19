@@ -5,10 +5,14 @@ phases:
     commands:
       - echo Installing dependencies...
       - npm install --save-dev webpack webpack-cli
+      - npm install
   build:
     commands:
       - echo Building project...
-      - webpack-cli
-      - sam deploy
+      - npm run build
+      - npm run deploy
+artifacts:
+  files:
+    - '*'
 
   
