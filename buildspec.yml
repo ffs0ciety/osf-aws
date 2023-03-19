@@ -4,7 +4,7 @@ phases:
   install:
     commands:
       - echo Installing dependencies...
-      - npm install webpack-cli
+      - npm install --save-dev webpack webpack-cli
   build:
     commands:
       - echo Building project...
