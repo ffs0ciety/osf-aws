@@ -16,7 +16,7 @@ export const handler = async (event: APIGatewayEvent) => {
     });
   }
 
-  return db.getAll(API).then( (result) => {
+  return db.getAll(API, _.get(event,'queryStringParameters')).then( (result) => {
     return new Response(200,'getPublic', result)
   }).catch((error : Error) => {
     return new Response(error.statusCode,'getPublic', error)

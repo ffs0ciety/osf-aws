@@ -28,12 +28,32 @@ export class DatabaseDynamoDb extends Database {
   }
 
 
-  async getAll(tableName: string) {
-    var params = {
+  async getAll(tableName: string, select?: object) {
+    var params;
+
+
+    select ? params = {
+      TableName: `osf_${tableName}`,
+      FilterExpression: '',
+      ExpressionAttributeValues: {}
+    } : params = {
       TableName: `osf_${tableName}`
     }
+
+    if (select) {
+      for (const query in select) {
+        if (query != undefined) {
+          params.FilterExpression += `${query}=:${query} AND `;
+          var querydots = `:${query}`
+          params.ExpressionAttributeValues[querydots] = select[query]
+        }
+      }
+      params.FilterExpression = params.FilterExpression.slice(0, -5)
+    }
+
     try {
       return await documentClient.scan(params).promise();
+      return params
     } catch (error) {
       throw new Error(_.get(error, 'statusCode', 500), 'DatabaseDynamo - getAll', error);
     }

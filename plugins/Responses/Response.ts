@@ -10,8 +10,6 @@ export class Response {
        this.headers = new Header();
        this.statusCode = statusCode;
        
-        console.log('-----------------');
-
        if(_.inRange(statusCode, 300,599)){
         this.body = JSON.stringify(new Error(statusCode, caller, result))
        } else {

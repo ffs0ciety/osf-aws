@@ -120,11 +120,11 @@ Resources:
       Name: osfGoalsApi
       Description: OsfGoalsApi
       StageName: v1
-      Cors:
-        AllowMethods: "'*'"
-        AllowHeaders: "'*'"
-        AllowOrigin: "'*'"
-        MaxAge: "'600'"
+      Auth:
+          AddDefaultAuthorizerToCorsPreflight: true
+          Authorizers:
+              OsfCognitoAuthorizer:
+                UserPoolArn: !GetAtt OsfCognitoUserPool.Arn
   #LAMBDAS
   createGoal:
     Type: AWS::Serverless::Function
@@ -146,6 +146,8 @@ Resources:
             Method: POST
             RestApiId:
               Ref: OsfGoalsApi
+            Auth:
+                  Authorizer: OsfCognitoAuthorizer
   signUp:
     Type: AWS::Serverless::Function
     Properties:
@@ -214,6 +216,8 @@ Resources:
             Method: GET
             RestApiId:
               Ref: OsfGoalsApi
+            Auth:
+                  Authorizer: OsfCognitoAuthorizer
         Goal:
           Type: Api
           Properties:

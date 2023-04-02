@@ -21,9 +21,12 @@ export const handler = async (event: APIGatewayEvent) => {
         
         if (initAuthResponse.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
             const auth = await newPassword(initAuthResponse.Session, email, password)
+
+            //TODO: add user to dynamodb
             return new Response(200,'signUp', auth)
         }
 
+        
         return new Response(400,'signUp', null)
     } catch (error) {
         return new Response(error.statusCode || 400,'signUp', error)
